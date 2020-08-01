@@ -16,7 +16,8 @@
 		"react-scripts": "3.4.1",
 		"semantic-ui-css": "^2.4.1",
 		"semantic-ui-react": "^1.0.0",
-		"styled-components": "^5.1.1"
+		"styled-components": "^5.1.1",
+		"use-immer": "^0.4.1"
 	},
 	"scripts": {
 		"predeploy": "npm run build",
