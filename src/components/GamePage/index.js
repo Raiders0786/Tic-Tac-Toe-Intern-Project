@@ -1,9 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { useImmer } from 'use-immer';
-import * as queryString from 'query-string';
+import React, { useState, useEffect } from "react";
+import { useImmer } from "use-immer";
+import * as queryString from "query-string";
 
-import { createGrid, checkWinConndition } from '../../services/gridFunctions';
-import { Container, Grid, GridItem, Blob } from './styles';
+import { createGrid, checkWinConndition } from "../../services/gridFunctions";
+import { Container, Grid, GridItem, Blob } from "./styles";
 
 const GamePage = ({ match, location }) => {
 	const [isLoading, setIsLoading] = useState(false);
@@ -12,8 +12,8 @@ const GamePage = ({ match, location }) => {
 	const [gameBoard, setGameBoard] = useImmer(createGrid(2));
 	const [playerDetails, setPlayerDetails] = useImmer(
 		new Map([
-			['player1', null],
-			['player2', null],
+			["player1", null],
+			["player2", null],
 		])
 	);
 
@@ -21,8 +21,8 @@ const GamePage = ({ match, location }) => {
 		const query = queryString.parse(location.search);
 		setGameBoard(() => createGrid(Number(match.params.size)));
 		setPlayerDetails(draft => {
-			draft.set('player1', query.player1 === undefined ? null : query.player1);
-			draft.set('player2', query.player2 === undefined ? null : query.player2);
+			draft.set("player1", query.player1 === undefined ? null : query.player1);
+			draft.set("player2", query.player2 === undefined ? null : query.player2);
 		});
 	}, [match.params.size, location.search, setPlayerDetails, setGameBoard]);
 
@@ -37,20 +37,20 @@ const GamePage = ({ match, location }) => {
 	}, [gameBoard, setGameBoard]);
 
 	useEffect(() => {
-		console.groupCollapsed('Player Details ...');
-		console.log('Details for Player 1 :');
-		console.log(playerDetails.get('player1'));
-		console.log('Details for Player 2 :');
-		console.log(playerDetails.get('player2'));
+		console.groupCollapsed("Player Details ...");
+		console.log("Details for Player 1 :");
+		console.log(playerDetails.get("player1"));
+		console.log("Details for Player 2 :");
+		console.log(playerDetails.get("player2"));
 		console.groupEnd();
 	}, [playerDetails]);
 
 	useEffect(() => {
-		console.groupCollapsed('Board Config ...');
-		console.log('Current Grid :');
+		console.groupCollapsed("Board Config ...");
+		console.log("Current Grid :");
 		console.table(gameBoard);
-		console.log('Current Player :\t', currentPlayer);
-		console.log('Player who has won :\t', whoHasWon);
+		console.log("Current Player :\t", currentPlayer);
+		console.log("Player who has won :\t", whoHasWon);
 		console.groupEnd();
 	}, [gameBoard, currentPlayer, whoHasWon]);
 
@@ -78,7 +78,7 @@ const GamePage = ({ match, location }) => {
 		</Container>
 	);
 
-	return isLoading === true ? <div>Loading</div> : mappedBoard;
+	return isLoading ? <div>Loading</div> : mappedBoard;
 };
 
 export default GamePage;

@@ -1,6 +1,6 @@
-import styled from 'styled-components';
+import styled from "styled-components";
 
-export const Container = styled('div')`
+export const Container = styled("div")`
 	border: 1px solid black;
 	width: 100%;
 	height: 100%;
@@ -22,7 +22,7 @@ export const Container = styled('div')`
 	)}
 `;
 
-export const Grid = styled('div')`
+export const Grid = styled("div")`
 	border: 1px dashed blue;
 	background-color: #f0f0f0;
 	width: 100%;
@@ -39,14 +39,14 @@ export const Grid = styled('div')`
 					new Array(props.size)
 						.fill(null)
 						.map((_, j) => `p${i}${j}`)
-						.join(' ') +
+						.join(" ") +
 					"'"
 			)
-			.join(' ');
+			.join(" ");
 	}};
 `;
 
-export const GridItem = styled('div')`
+export const GridItem = styled("div")`
 	width: 40px;
 	height: 40px;
 	margin: auto;
@@ -58,8 +58,10 @@ export const GridItem = styled('div')`
 	align-items: center;
 
 	${[
-		[600, 40],
-		[500, 30],
+		[800, 40],
+		[700, 35],
+		[600, 30],
+		[500, 25],
 		[400, 20],
 	].map(
 		el => `
@@ -71,7 +73,7 @@ export const GridItem = styled('div')`
 	)}
 `;
 
-export const Blob = styled('div')`
+export const Blob = styled("div")`
 	width: 100%;
 	height: 100%;
 	border-radius: 50%;
@@ -91,22 +93,22 @@ export const Blob = styled('div')`
 	background-size: 400% 400%;
 	transition: background-position 0.7s, transform 0.3s;
 
-	cursor: ${props => (props.dir === null ? 'pointer' : 'crosshair')};
+	cursor: ${props => (props.dir !== null ? "crosshair" : "pointer")};
 	background-position: ${props => {
-		if (props.dir === 0) return '50% 50%';
-		if (props.dir === 1) return '0% 0%';
-		if (props.dir === 2) return '90% 90%';
-		else return '25% 25%';
+		if (props.dir === 0) return "50% 50%";
+		if (props.dir === 1) return "0% 0%";
+		if (props.dir === 2) return "90% 90%";
+		else return "25% 25%";
 	}};
 
 	box-shadow: 1px 1px 5px 2px rgba(56, 56, 56, 0.6)
-		${props => (props.dir !== null ? 'inset' : '')};
-
-	transform: ${props => (props.dir === 0 ? 'scale(1.1)' : 'scale(1.0)')};
+		${props => (props.dir !== null ? "inset" : "")};
 
 	&:hover {
-		z-index: 2;
 		transform: ${props =>
-			props.dir !== null ? 'scale(1.1)' : 'scale(1.2) rotateZ(360deg)'};
+			props.dir !== null ? "scale(1.0)" : "scale(1.2) rotateZ(90deg)"};
 	}
 `;
+
+const i = 1;
+const str = `sbvbsbv ${i}`;
