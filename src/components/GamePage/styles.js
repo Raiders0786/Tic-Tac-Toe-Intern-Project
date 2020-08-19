@@ -109,6 +109,3 @@ export const Blob = styled("div")`
 			props.dir !== null ? "scale(1.0)" : "scale(1.2) rotateZ(90deg)"};
 	}
 `;
-
-const i = 1;
-const str = `sbvbsbv ${i}`;
