@@ -1,3 +1,5 @@
+import { winStatus, boardStatus, checkBoardCell } from "./gameConstants";
+
 export const createGrid = (n, val = null) => {
 	const grid = new Array(n).fill(null);
 	return grid.map(() => new Array(n).fill(val));
@@ -26,41 +28,34 @@ const diagonals = grid => {
 };
 
 export const checkWinConndition = grid => {
-	const size = grid.length;
 	const tran = transpose(grid);
 	const { diag1, diag2 } = diagonals(grid);
 
-	for (let i = 0; i < size; ++i) {
-		if (
-			(grid[i][0] === 1 || grid[i][0] === 2) &&
-			grid[i].every(el => el === grid[i][0])
-		)
+	for (let i = 0; i < grid.length; ++i) {
+		if (checkBoardCell(grid[i][0]) && grid[i].every(el => el === grid[i][0]))
 			return {
 				winner: grid[i][0],
 				positions: grid[i].map((_, j) => ({ x: i, y: j })),
 			};
 
-		if (
-			(tran[i][0] === 1 || tran[i][0] === 2) &&
-			tran[i].every(el => el === tran[i][0])
-		)
+		if (checkBoardCell(tran[i][0]) && tran[i].every(el => el === tran[i][0]))
 			return {
 				winner: tran[i][0],
 				positions: tran[i].map((_, j) => ({ x: j, y: i })),
 			};
 	}
 
-	if ((diag1[0] === 1 || diag1[0] === 2) && diag1.every(el => el === diag1[0]))
+	if (checkBoardCell(diag1[0]) && diag1.every(el => el === diag1[0]))
 		return { winner: diag1[0], positions: diag1.map((_, i) => ({ x: i, y: i })) };
 
-	if ((diag2[0] === 1 || diag2[0] === 2) && diag2.every(el => el === diag2[0]))
+	if (checkBoardCell(diag2[0]) && diag2.every(el => el === diag2[0]))
 		return {
 			winner: diag2[0],
-			positions: diag2.map((_, i) => ({ x: i, y: size - 1 - i })),
+			positions: diag2.map((_, i) => ({ x: i, y: grid.length - 1 - i })),
 		};
 
-	if (grid.every(row => row.every(el => el !== null)))
-		return { winner: 0, positions: [] };
+	if (grid.every(row => row.every(el => el !== boardStatus.EMPTY)))
+		return { winner: winStatus.DRAW, positions: [] };
 
-	return { winner: null, positions: [] };
+	return { winner: winStatus.NONE, positions: [] };
 };

@@ -1,251 +1,189 @@
-import React, { Component } from 'react';
+import React, { useState, useEffect } from "react";
+import { Link } from "react-router-dom";
 import {
-	Menu,
 	Segment,
+	Icon,
 	Header,
 	Button,
-	Grid,
+	Input,
 	Modal,
-	Image,
-	Dropdown,
-	Icon,
-} from 'semantic-ui-react';
+	Divider,
+} from "semantic-ui-react";
 
-import { allowedSizes } from '../../services/gameConstants';
-import './style.css';
+import {
+	minBoardSize,
+	maxBoardSize,
+	startBoardSize,
+} from "../../services/gameConstants";
 
-const Title = {
-	color: 'black',
-	padding: '10px',
-	fontFamily: 'Arial',
-	fontSize: '4rem',
-	textShadow: '0px 0px 10px rgb(11, 8, 185)',
-};
+import DropdownMenu from "./Dropdown";
+import { StyledGrid, GridItem } from "./style";
 
-const DropdownExampleSelection = () => (
-	<Dropdown
-		placeholder='Select user'
-		search
-		multiple
-		selection
-		options={userOptions}
-	/>
-);
-
-class DropdownExampleControlled extends Component {
-	state = {};
-
-	handleChange = (e, { value }) =>
-		this.setState({
-			value,
-		});
-
-	render() {
-		const { value } = this.state;
-
-		return (
-			<Grid columns={2}>
-				<Grid.Column>
-					<Dropdown
-						onChange={this.handleChange}
-						options={allowedSizes}
-						placeholder='Select Size of Board'
-						selection
-						value={value}
-					/>
-				</Grid.Column>
-			</Grid>
-		);
-	}
-}
 const userOptions = [
 	{
-		key: 'Jenny Hess',
-		text: 'Jenny Hess',
-		value: 'Jenny Hess',
+		key: "Jenny Hess",
+		text: "Jenny Hess",
+		value: "Jenny Hess",
 		image: {
 			avatar: true,
-			src: 'https://react.semantic-ui.com/images/avatar/small/jenny.jpg',
+			src: "https://react.semantic-ui.com/images/avatar/small/jenny.jpg",
 		},
 	},
 	{
-		key: 'Elliot Fu',
-		text: 'Elliot Fu',
-		value: 'Elliot Fu',
+		key: "Elliot Fu",
+		text: "Elliot Fu",
+		value: "Elliot Fu",
 		image: {
 			avatar: true,
-			src: 'https://react.semantic-ui.com/images/avatar/small/elliot.jpg',
+			src: "https://react.semantic-ui.com/images/avatar/small/elliot.jpg",
 		},
 	},
 	{
-		key: 'Stevie Feliciano',
-		text: 'Stevie Feliciano',
-		value: 'Stevie Feliciano',
+		key: "Stevie Feliciano",
+		text: "Stevie Feliciano",
+		value: "Stevie Feliciano",
 		image: {
 			avatar: true,
-			src: 'https://react.semantic-ui.com/images/avatar/small/stevie.jpg',
+			src: "https://react.semantic-ui.com/images/avatar/small/stevie.jpg",
 		},
+		disabled: true,
 	},
 	{
-		key: 'Christian',
-		text: 'Christian',
-		value: 'Christian',
+		key: "Christian",
+		text: "Christian",
+		value: "Christian",
 		image: {
 			avatar: true,
-			src: 'https://react.semantic-ui.com/images/avatar/small/christian.jpg',
+			src: "https://react.semantic-ui.com/images/avatar/small/christian.jpg",
 		},
 	},
 ];
 
-class MenuExampleInvertedSecondary extends Component {
-	state = {
-		activeItem: 'home',
+const HomePage = ({ history }) => {
+	const [isLoading, setIsLoading] = useState(true);
+	const [isModalOpen, setIsModelOpen] = useState(false);
+	const [players, setPlayers] = useState([]);
+	const [player1, setPlayer1] = useState("Jenny Hess");
+	const [player2, setPlayer2] = useState("Elliot Fu");
+	const [boardSize, setBoardSize] = useState(startBoardSize);
+
+	useEffect(() => {
+		setPlayers(userOptions);
+		setIsLoading(false);
+	}, []);
+
+	const handleModalToggle = () => {
+		setIsModelOpen(prev => !prev);
 	};
 
-	handleItemClick = (e, { name }) =>
-		this.setState({
-			activeItem: name,
-		});
-
-	render() {
-		const { activeItem } = this.state;
-
-		return (
-			<Segment inverted>
-				<Menu inverted pointing secondary>
-					<Menu.Item
-						name='HOME'
-						active={activeItem === 'home'}
-						onClick={this.handleItemClick}
-					/>
-					<Menu.Item
-						name='GAME BOARD'
-						active={activeItem === 'game'}
-						onClick={this.handleItemClick}
-					/>
-					<Menu.Item
-						name='LEADER BOARD'
-						active={activeItem === 'leaderboard'}
-						onClick={this.handleItemClick}
-					/>
-				</Menu>
-			</Segment>
-		);
-	}
-}
-
-class ButtonExampleFocus extends Component {
-	render() {
-		return (
-			<Grid>
-				<Grid.Column width={8}>
-					<Button content='START GAME' primary ref={this.buttonRef} />
-				</Grid.Column>
-			</Grid>
-		);
-	}
-}
-
-class ModalExampleControlled extends Component {
-	state = {
-		modalOpen: false,
+	const handlePlayerChange = player => (_, { value }) => {
+		if (player === 1) setPlayer1(value);
+		else if (player === 2) setPlayer2(value);
 	};
 
-	handleOpen = () =>
-		this.setState({
-			modalOpen: true,
-		});
+	const handleSizeChange = (_, { value }) => {
+		value = Number(value);
+		if (value < minBoardSize) value = minBoardSize;
+		if (value > maxBoardSize) value = maxBoardSize;
+		if (Math.round(value) !== value) value = Math.round(value);
+		setBoardSize(value);
+	};
 
-	handleClose = () =>
-		this.setState({
-			modalOpen: false,
-		});
+	const handleSubmit = () => {
+		console.log(player1);
+		console.log(player2);
+		console.log(boardSize);
+		history.push(`/game/${boardSize}?player1=${player1}&player2=${player2}`);
+	};
 
-	render() {
-		return (
-			<Modal
-				trigger={<Button onClick={this.handleOpen}> INSTRUCTIONS </Button>}
-				open={this.state.modalOpen}
-				onClose={this.handleClose}
-				basic
-				size='small'
-			>
-				<Header icon='info' content='HOW TO PLAY!' />
-				<Modal.Content>
-					<h3> {'THIS MODAL SHOWS GAME INSTRUCTIONS! '} </h3>
+	if (isLoading) return <div>Loading ...</div>;
+
+	return (
+		<React.Fragment>
+			<StyledGrid>
+				<GridItem area='a' as={Segment} color='purple' raised>
+					<Header as='h2'>
+						<Icon name='setting' loading />
+						<Header.Content>
+							Tic Tac Toe
+							<Header.Subheader>Choose an Option</Header.Subheader>
+						</Header.Content>
+					</Header>
+					<Divider section horizontal>
+						<Icon name='tag' />
+						Options
+					</Divider>
+					<Button
+						primary
+						icon
+						fluid
+						labelPosition='left'
+						onClick={handleModalToggle}
+					>
+						<Icon name='settings' />
+						New Game
+					</Button>
+					<br />
+					<Button
+						as={Link}
+						to='/register'
+						icon
+						fluid
+						color='orange'
+						labelPosition='left'
+					>
+						<Icon name='plus' />
+						New User
+					</Button>
+				</GridItem>
+			</StyledGrid>
+			<Modal open={isModalOpen} centered={false}>
+				<Modal.Header>Choose Players</Modal.Header>
+				<Modal.Content scrolling>
+					<DropdownMenu
+						placeholder='Select Player 1'
+						options={players.map(el => ({
+							...el,
+							disabled: el.value === player2 ? true : false,
+						}))}
+						value={player1}
+						handleChange={handlePlayerChange(1)}
+					/>
+					<br />
+					<DropdownMenu
+						placeholder='Select Player 2'
+						options={players.map(el => ({
+							...el,
+							disabled: el.value === player1 ? true : false,
+						}))}
+						value={player2}
+						handleChange={handlePlayerChange(2)}
+					/>
+					<br />
+					<Input
+						fluid
+						step={1}
+						type='number'
+						min={minBoardSize}
+						max={maxBoardSize}
+						value={boardSize}
+						onChange={handleSizeChange}
+					/>
+					<br />
 				</Modal.Content>
 				<Modal.Actions>
-					<Button color='green' onClick={this.handleClose} inverted>
-						<Icon name='checkmark' /> Got it
+					<Button primary icon labelPosition='right' onClick={handleSubmit}>
+						<Icon name='subway' />
+						Start
+					</Button>
+					<Button negative icon labelPosition='right' onClick={handleModalToggle}>
+						<Icon name='close' />
+						Close
 					</Button>
 				</Modal.Actions>
 			</Modal>
-		);
-	}
-}
-
-function ModalExampleContentImage() {
-	const [open, setOpen] = React.useState(false);
-
-	return (
-		<Modal
-			onClose={() => setOpen(false)}
-			onOpen={() => setOpen(true)}
-			open={open}
-			trigger={<Button secondary> ADD USER </Button>}
-		>
-			<Modal.Header> ADD USERS </Modal.Header>
-			<Modal.Content image>
-				<Image
-					size='medium'
-					src='https://react.semantic-ui.com/images/avatar/large/rachel.png'
-					wrapped
-				/>
-				<Modal.Description>
-					<p> SELECT YOUR CHARACTER </p>
-				</Modal.Description>
-			</Modal.Content>
-			<Modal.Actions>
-				<Button onClick={() => setOpen(false)}> Cancel </Button>
-				<Button onClick={() => setOpen(false)} positive>
-					ADD USER
-				</Button>
-			</Modal.Actions>
-		</Modal>
+		</React.Fragment>
 	);
-}
-
-class HomePage extends Component {
-	state = {};
-	render() {
-		return (
-			<div>
-				<div className='title'>
-					<Header as='h1' block style={Title}>
-						TIC - TAC - TOE
-					</Header>
-				</div>
-				<div>
-					<MenuExampleInvertedSecondary />
-				</div>
-				<div className='adduser'>
-					<ModalExampleContentImage />
-					<span>
-						<DropdownExampleSelection />
-					</span>
-				</div>
-				<div className='selectboard'>
-					<DropdownExampleControlled />
-				</div>
-				<div className='btn'>
-					<ButtonExampleFocus />
-				</div>
-				<div className='instruction'>
-					<ModalExampleControlled />
-				</div>
-			</div>
-		);
-	}
-}
+};
 
 export default HomePage;

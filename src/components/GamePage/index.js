@@ -4,15 +4,21 @@ import { Menu, Button, Icon, Modal, Header } from "semantic-ui-react";
 import { useImmer } from "use-immer";
 import * as queryString from "query-string";
 
+import {
+	playerStatus,
+	winStatus,
+	boardStatus,
+	getNextPlayer,
+} from "../../services/gameConstants";
 import { createGrid, checkWinConndition } from "../../services/gridFunctions";
 import { Container, Board, BoardItem, Blob } from "./styles";
 
 const GamePage = ({ match, location }) => {
 	const [isLoading, setIsLoading] = useState(true);
-	const [currentPlayer, setCurrentPlayer] = useState(1);
+	const [currentPlayer, setCurrentPlayer] = useState(playerStatus.P1);
 	const [hasForfeited, setHasForfeited] = useState(false);
-	const [hasWon, setHasWon] = useState(null);
-	const [gameBoard, setGameBoard] = useImmer(createGrid(2));
+	const [hasWon, setHasWon] = useState(winStatus.NONE);
+	const [gameBoard, setGameBoard] = useImmer(createGrid(1));
 	const [playerDetails, setPlayerDetails] = useImmer({
 		player1: null,
 		player2: null,
@@ -27,17 +33,6 @@ const GamePage = ({ match, location }) => {
 		});
 		setIsLoading(false);
 	}, [match.params.size, location.search, setPlayerDetails, setGameBoard]);
-
-	useEffect(() => {
-		const { winner, positions } = checkWinConndition(gameBoard);
-		if (winner === null) return;
-		setHasWon(winner);
-		setGameBoard(draft => {
-			positions.forEach(({ x, y }) => {
-				draft[x][y] = 0;
-			});
-		});
-	}, [gameBoard, setGameBoard]);
 
 	useEffect(() => {
 		console.groupCollapsed("Player Details ...");
@@ -58,11 +53,17 @@ const GamePage = ({ match, location }) => {
 	}, [gameBoard, currentPlayer, hasWon]);
 
 	const onBoardItemClick = (i, j) => () => {
-		if (gameBoard[i][j] !== null) return null;
+		if (gameBoard[i][j] !== boardStatus.EMPTY || hasWon !== winStatus.NONE)
+			return null;
 		setGameBoard(draft => {
 			draft[i][j] = currentPlayer;
+			const { winner, positions } = checkWinConndition(draft);
+			setHasWon(winner);
+			positions.forEach(({ x, y }) => {
+				draft[x][y] = boardStatus.MARK;
+			});
 		});
-		setCurrentPlayer(prevPlayer => (prevPlayer % 2) + 1);
+		setCurrentPlayer(getNextPlayer(currentPlayer));
 	};
 
 	const openConfirmation = () => {
@@ -75,14 +76,16 @@ const GamePage = ({ match, location }) => {
 
 	const forfeitMatch = () => {
 		setHasForfeited(false);
-		setHasWon((currentPlayer % 2) + 1);
+		setHasWon(getNextPlayer(currentPlayer));
 	};
 
 	return isLoading ? (
 		<div> Loading </div>
 	) : (
 		<React.Fragment>
-			<Container turn={hasWon === null ? currentPlayer : 0}>
+			<Container
+				turn={hasWon !== winStatus.NONE ? playerStatus.NONE : currentPlayer}
+			>
 				<Menu pointing inverted widths={3} size='mini' color='grey'>
 					<Menu.Item fitted active={currentPlayer === 1}>
 						<Icon name='user' color='teal' /> Player 1
@@ -105,15 +108,17 @@ const GamePage = ({ match, location }) => {
 						<React.Fragment key={i}>
 							{row.map((el, j) => (
 								<BoardItem key={`p${i}${j}`} area={`p${i}${j}`}>
-									<Blob dir={el} onClick={onBoardItemClick(i, j)} />
+									<Blob cell={el} onClick={onBoardItemClick(i, j)} />
 								</BoardItem>
 							))}
 						</React.Fragment>
 					))}
 				</Board>
 			</Container>
-			<Modal centered open={hasWon !== null}>
-				<Modal.Header>Congrats Player {hasWon} has Won</Modal.Header>
+			<Modal centered open={hasWon !== winStatus.NONE}>
+				<Modal.Header>
+					{hasWon === winStatus.DRAW ? "It is a Tie." : `Player ${hasWon} has Won`}
+				</Modal.Header>
 				<Modal.Content>
 					<Modal.Description>
 						<Header>Do you want to</Header>

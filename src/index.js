@@ -1,10 +1,10 @@
-import React from 'react';
-import ReactDOM from 'react-dom';
-import { enableMapSet } from 'immer';
-import 'semantic-ui-css/semantic.min.css';
-import { createGlobalStyle } from 'styled-components';
+import React from "react";
+import ReactDOM from "react-dom";
+import { enableMapSet } from "immer";
+import "semantic-ui-css/semantic.min.css";
+import { createGlobalStyle } from "styled-components";
 
-import App from './components/App';
+import App from "./components/App";
 
 const GlobalStyles = createGlobalStyle`
    * {
@@ -21,7 +21,7 @@ const GlobalStyles = createGlobalStyle`
    #root {
       width: 100%;
       height: 100%;
-      padding: 1rem;
+      padding: 2px;
    }
 `;
 
@@ -31,5 +31,5 @@ ReactDOM.render(
 		<GlobalStyles />
 		<App />
 	</React.Fragment>,
-	document.getElementById('root')
+	document.getElementById("root")
 );

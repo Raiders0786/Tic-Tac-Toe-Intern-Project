@@ -1,5 +1,7 @@
 import styled from "styled-components";
 
+import { boardStatus, playerStatus } from "../../services/gameConstants";
+
 export const Container = styled("div")`
 	width: 100%;
 	height: 100%;
@@ -7,11 +9,11 @@ export const Container = styled("div")`
 	background-color: #7f53ac;
 	background: linear-gradient(to right, #12c2e9, #c471ed, #f64f59);
 	background-size: 300% 100%;
-	transition: background-position 0.7s;
+	transition: background-position 1.1s;
 	background-position: ${props => {
-		if (props.turn === 1) return "0% 50%";
-		if (props.turn === 2) return "100% 50%";
-		if (props.turn === 0) return "50% 50%";
+		if (props.turn === playerStatus.P1) return "0% 50%";
+		if (props.turn === playerStatus.P2) return "100% 50%";
+		if (props.turn === playerStatus.NONE) return "50% 50%";
 	}};
 `;
 
@@ -85,21 +87,21 @@ export const Blob = styled("div")`
 	);
 
 	background-size: 400% 400%;
-	transition: background-position 0.7s, transform 0.3s;
+	transition: background-position 0.7s, transform 0.4s;
 
-	cursor: ${props => (props.dir !== null ? "crosshair" : "pointer")};
+	cursor: ${props => (props.cell === boardStatus.EMPTY ? "pointer" : "crosshair")};
 	background-position: ${props => {
-		if (props.dir === 0) return "50% 50%";
-		if (props.dir === 1) return "90% 90%";
-		if (props.dir === 2) return "0% 0%";
-		else return "25% 25%";
+		if (props.cell === boardStatus.MARK) return "50% 50%";
+		if (props.cell === boardStatus.P1) return "90% 90%";
+		if (props.cell === boardStatus.P2) return "0% 0%";
+		return "25% 25%";
 	}};
 
 	box-shadow: 1px 1px 5px 2px rgba(56, 56, 56, 0.6)
-		${props => (props.dir !== null ? "inset" : "")};
+		${props => (props.cell === boardStatus.EMPTY ? "" : "inset")};
 
 	&:hover {
 		transform: ${props =>
-			props.dir !== null ? "scale(1.0)" : "scale(1.2) rotateZ(90deg)"};
+			props.cell === boardStatus.EMPTY ? "scale(1.2) rotateZ(90deg)" : "scale(1.0)"};
 	}
 `;
