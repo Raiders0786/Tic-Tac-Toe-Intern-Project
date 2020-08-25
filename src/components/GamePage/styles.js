@@ -1,35 +1,28 @@
 import styled from "styled-components";
 
 export const Container = styled("div")`
-	border: 1px solid black;
 	width: 100%;
 	height: 100%;
-	padding: 10% 10%;
-
-	${[
-		[900, 9, 12],
-		[800, 8, 14],
-		[700, 7, 16],
-		[600, 6, 18],
-		[500, 5, 20],
-		[400, 4, 22],
-	].map(
-		el => `
-      @media(max-width: ${el[0]}px) {
-         padding: ${el[2]}% ${el[1]}%;
-      }
-   `
-	)}
+	overflow-y: auto;
+	background-color: #7f53ac;
+	background: linear-gradient(to right, #12c2e9, #c471ed, #f64f59);
+	background-size: 300% 100%;
+	transition: background-position 0.7s;
+	background-position: ${props => {
+		if (props.turn === 1) return "0% 50%";
+		if (props.turn === 2) return "100% 50%";
+		if (props.turn === 0) return "50% 50%";
+	}};
 `;
 
-export const Grid = styled("div")`
-	border: 1px dashed blue;
-	background-color: #f0f0f0;
+export const Board = styled("div")`
 	width: 100%;
-	height: 100%;
+	height: 90%;
+	padding: 1%;
 	display: grid;
-	grid-template-rows: repeat(${props => `${props.size}, ${100 / props.size}%`});
-	grid-template-columns: repeat(${props => `${props.size}, ${100 / props.size}%`});
+	grid-template:
+		repeat(${props => props.size}, ${props => 100 / props.size}%) /
+		repeat(${props => props.size}, ${props => 100 / props.size}%);
 	grid-template-areas: ${props => {
 		return new Array(props.size)
 			.fill(null)
@@ -46,22 +39,22 @@ export const Grid = styled("div")`
 	}};
 `;
 
-export const GridItem = styled("div")`
+export const BoardItem = styled("div")`
 	width: 40px;
 	height: 40px;
 	margin: auto;
-	padding: 2%;
-	border-radius: 50%;
+	padding: 0.2%;
+	border-radius: 10%;
 	grid-area: ${props => props.area};
 	display: flex;
 	justify-content: center;
 	align-items: center;
 
 	${[
-		[800, 40],
-		[700, 35],
-		[600, 30],
-		[500, 25],
+		[800, 36],
+		[700, 32],
+		[600, 28],
+		[500, 24],
 		[400, 20],
 	].map(
 		el => `
@@ -76,6 +69,7 @@ export const GridItem = styled("div")`
 export const Blob = styled("div")`
 	width: 100%;
 	height: 100%;
+	user-select: none;
 	border-radius: 50%;
 	background: linear-gradient(
 		124deg,
@@ -96,8 +90,8 @@ export const Blob = styled("div")`
 	cursor: ${props => (props.dir !== null ? "crosshair" : "pointer")};
 	background-position: ${props => {
 		if (props.dir === 0) return "50% 50%";
-		if (props.dir === 1) return "0% 0%";
-		if (props.dir === 2) return "90% 90%";
+		if (props.dir === 1) return "90% 90%";
+		if (props.dir === 2) return "0% 0%";
 		else return "25% 25%";
 	}};
 
