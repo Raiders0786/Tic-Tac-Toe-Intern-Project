@@ -15,61 +15,34 @@ import {
 	maxBoardSize,
 	startBoardSize,
 } from "../../services/gameConstants";
+import crudCrud from "../../apis/crudCrud";
 
 import DropdownMenu from "./Dropdown";
 import { StyledGrid, GridItem } from "./style";
-
-const userOptions = [
-	{
-		key: "Jenny Hess",
-		text: "Jenny Hess",
-		value: "Jenny Hess",
-		image: {
-			avatar: true,
-			src: "https://react.semantic-ui.com/images/avatar/small/jenny.jpg",
-		},
-	},
-	{
-		key: "Elliot Fu",
-		text: "Elliot Fu",
-		value: "Elliot Fu",
-		image: {
-			avatar: true,
-			src: "https://react.semantic-ui.com/images/avatar/small/elliot.jpg",
-		},
-	},
-	{
-		key: "Stevie Feliciano",
-		text: "Stevie Feliciano",
-		value: "Stevie Feliciano",
-		image: {
-			avatar: true,
-			src: "https://react.semantic-ui.com/images/avatar/small/stevie.jpg",
-		},
-		disabled: true,
-	},
-	{
-		key: "Christian",
-		text: "Christian",
-		value: "Christian",
-		image: {
-			avatar: true,
-			src: "https://react.semantic-ui.com/images/avatar/small/christian.jpg",
-		},
-	},
-];
 
 const HomePage = ({ history }) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isModalOpen, setIsModelOpen] = useState(false);
 	const [players, setPlayers] = useState([]);
-	const [player1, setPlayer1] = useState("Jenny Hess");
-	const [player2, setPlayer2] = useState("Elliot Fu");
+	const [player1, setPlayer1] = useState(null);
+	const [player2, setPlayer2] = useState(null);
 	const [boardSize, setBoardSize] = useState(startBoardSize);
 
 	useEffect(() => {
-		setPlayers(userOptions);
-		setIsLoading(false);
+		(async () => {
+			const { data } = await crudCrud.get("/user");
+			setPlayers(
+				data.map(el => ({
+					key: el._id,
+					value: el._id,
+					text: el.name,
+					icon: el.icon,
+				}))
+			);
+			setPlayer1(data[0]._id);
+			setPlayer2(data[1]._id);
+			setIsLoading(false);
+		})();
 	}, []);
 
 	const handleModalToggle = () => {
@@ -90,9 +63,6 @@ const HomePage = ({ history }) => {
 	};
 
 	const handleSubmit = () => {
-		console.log(player1);
-		console.log(player2);
-		console.log(boardSize);
 		history.push(`/game/${boardSize}?player1=${player1}&player2=${player2}`);
 	};
 

@@ -1,11 +1,11 @@
-import { winStatus, boardStatus, checkBoardCell } from "./gameConstants";
+import { winKey, boardKey, checkBoardCell } from "./gameConstants";
 
 export const createGrid = (n, val = null) => {
 	const grid = new Array(n).fill(null);
 	return grid.map(() => new Array(n).fill(val));
 };
 
-const transpose = prevGrid => {
+export const transpose = prevGrid => {
 	const grid = [];
 	for (let i = 0; i < prevGrid.length; ++i) grid.push([]);
 
@@ -17,7 +17,7 @@ const transpose = prevGrid => {
 	return grid;
 };
 
-const diagonals = grid => {
+export const diagonals = grid => {
 	const diag1 = [];
 	const diag2 = [];
 	for (let i = 0; i < grid.length; ++i) {
@@ -54,8 +54,8 @@ export const checkWinConndition = grid => {
 			positions: diag2.map((_, i) => ({ x: i, y: grid.length - 1 - i })),
 		};
 
-	if (grid.every(row => row.every(el => el !== boardStatus.EMPTY)))
-		return { winner: winStatus.DRAW, positions: [] };
+	if (grid.every(row => row.every(el => el !== boardKey.EMPTY)))
+		return { winner: winKey.DRAW, positions: [] };
 
-	return { winner: winStatus.NONE, positions: [] };
+	return { winner: winKey.NONE, positions: [] };
 };

@@ -5,43 +5,57 @@ import { useImmer } from "use-immer";
 import * as queryString from "query-string";
 
 import {
-	playerStatus,
-	winStatus,
-	boardStatus,
-	getNextPlayer,
+	playerKey,
+	winKey,
+	boardKey,
+	nextPlayer,
+	checkGridSize,
+	getWinnerText,
+	computeResults,
 } from "../../services/gameConstants";
-import { createGrid, checkWinConndition } from "../../services/gridFunctions";
+import { createGrid, checkWinConndition } from "../../services/gridValidation";
+import crudCrud from "../../apis/crudCrud";
+
 import { Container, Board, BoardItem, Blob } from "./styles";
 
 const GamePage = ({ match, location }) => {
 	const [isLoading, setIsLoading] = useState(true);
-	const [currentPlayer, setCurrentPlayer] = useState(playerStatus.P1);
+	const [isRejected, setIsRejected] = useState(false);
+	const [currentPlayer, setCurrentPlayer] = useState(playerKey.P1);
 	const [hasForfeited, setHasForfeited] = useState(false);
-	const [hasWon, setHasWon] = useState(winStatus.NONE);
+	const [hasWon, setHasWon] = useState(winKey.NONE);
 	const [gameBoard, setGameBoard] = useImmer(createGrid(1));
-	const [playerDetails, setPlayerDetails] = useImmer({
-		player1: null,
-		player2: null,
-	});
+	const [p1Details, setP1Details] = useState({});
+	const [p2Details, setP2Details] = useState({});
 
 	useEffect(() => {
-		const query = queryString.parse(location.search);
-		setGameBoard(() => createGrid(Number(match.params.size)));
-		setPlayerDetails(draft => {
-			draft.player1 = query.player1 === undefined ? null : query.player1;
-			draft.player2 = query.player2 === undefined ? null : query.player2;
-		});
-		setIsLoading(false);
-	}, [match.params.size, location.search, setPlayerDetails, setGameBoard]);
+		(async () => {
+			const { player1, player2 } = queryString.parse(location.search);
+			const { data } = await crudCrud.get(`/user`);
+			const gridSize = Number(match.params.size);
+
+			if (
+				data.some(({ _id }) => _id === player1) &&
+				data.some(({ _id }) => _id === player2) &&
+				player1 !== player2 &&
+				checkGridSize(gridSize)
+			) {
+				setGameBoard(() => createGrid(gridSize));
+				setP1Details(data.find(({ _id }) => _id === player1) ?? {});
+				setP2Details(data.find(({ _id }) => _id === player2) ?? {});
+			} else setIsRejected(true);
+			setIsLoading(false);
+		})();
+	}, [match.params.size, location.search, setGameBoard]);
 
 	useEffect(() => {
 		console.groupCollapsed("Player Details ...");
 		console.log("Details for Player 1 :");
-		console.log(playerDetails.player1);
+		console.log(p1Details);
 		console.log("Details for Player 2 :");
-		console.log(playerDetails.player2);
+		console.log(p2Details);
 		console.groupEnd();
-	}, [playerDetails]);
+	}, [p1Details, p2Details]);
 
 	useEffect(() => {
 		console.groupCollapsed("Board Config ...");
@@ -53,17 +67,19 @@ const GamePage = ({ match, location }) => {
 	}, [gameBoard, currentPlayer, hasWon]);
 
 	const onBoardItemClick = (i, j) => () => {
-		if (gameBoard[i][j] !== boardStatus.EMPTY || hasWon !== winStatus.NONE)
-			return null;
+		if (gameBoard[i][j] !== boardKey.EMPTY || hasWon !== winKey.NONE) return null;
 		setGameBoard(draft => {
 			draft[i][j] = currentPlayer;
 			const { winner, positions } = checkWinConndition(draft);
-			setHasWon(winner);
 			positions.forEach(({ x, y }) => {
-				draft[x][y] = boardStatus.MARK;
+				draft[x][y] = boardKey.MARK;
 			});
+			(async winner => {
+				await computeResults(winner, p1Details, p2Details);
+				setHasWon(winner);
+			})(winner);
 		});
-		setCurrentPlayer(getNextPlayer(currentPlayer));
+		setCurrentPlayer(nextPlayer(currentPlayer));
 	};
 
 	const openConfirmation = () => {
@@ -74,31 +90,34 @@ const GamePage = ({ match, location }) => {
 		setHasForfeited(false);
 	};
 
-	const forfeitMatch = () => {
+	const confirmForfeit = async () => {
+		await computeResults(nextPlayer(currentPlayer), p1Details, p2Details);
 		setHasForfeited(false);
-		setHasWon(getNextPlayer(currentPlayer));
+		setHasWon(nextPlayer(currentPlayer));
 	};
 
 	return isLoading ? (
-		<div> Loading </div>
+		<div>Loading</div>
+	) : isRejected ? (
+		<div>Invalid Game</div>
 	) : (
 		<React.Fragment>
-			<Container
-				turn={hasWon !== winStatus.NONE ? playerStatus.NONE : currentPlayer}
-			>
+			<Container turn={hasWon !== winKey.NONE ? playerKey.NONE : currentPlayer}>
 				<Menu pointing inverted widths={3} size='mini' color='grey'>
 					<Menu.Item fitted active={currentPlayer === 1}>
-						<Icon name='user' color='teal' /> Player 1
+						<Icon name={p1Details.icon} color='teal' />
+						{p1Details.name}
 					</Menu.Item>
 					<Menu.Item fitted active={currentPlayer === 2}>
-						<Icon name='user' color='orange' /> Player 2
+						<Icon name={p2Details.icon} color='orange' />
+						{p2Details.name}
 					</Menu.Item>
 					<Menu.Item fitted>
 						<Button
-							icon='eject'
-							content='Forfeit'
 							fluid
 							negative
+							icon='eject'
+							content='Forfeit'
 							onClick={openConfirmation}
 						/>
 					</Menu.Item>
@@ -115,10 +134,8 @@ const GamePage = ({ match, location }) => {
 					))}
 				</Board>
 			</Container>
-			<Modal centered open={hasWon !== winStatus.NONE}>
-				<Modal.Header>
-					{hasWon === winStatus.DRAW ? "It is a Tie." : `Player ${hasWon} has Won`}
-				</Modal.Header>
+			<Modal centered open={hasWon !== winKey.NONE}>
+				<Modal.Header>{getWinnerText(hasWon, p1Details, p2Details)}</Modal.Header>
 				<Modal.Content>
 					<Modal.Description>
 						<Header>Do you want to</Header>
@@ -140,7 +157,7 @@ const GamePage = ({ match, location }) => {
 				</Modal.Content>
 				<Modal.Actions>
 					<Button negative icon='close' onClick={cancelForfeit} />
-					<Button positive icon='check' onClick={forfeitMatch} />
+					<Button positive icon='check' onClick={confirmForfeit} />
 				</Modal.Actions>
 			</Modal>
 		</React.Fragment>

@@ -1,6 +1,6 @@
 import styled from "styled-components";
 
-import { boardStatus, playerStatus } from "../../services/gameConstants";
+import { boardKey, playerKey } from "../../services/gameConstants";
 
 export const Container = styled("div")`
 	width: 100%;
@@ -11,9 +11,9 @@ export const Container = styled("div")`
 	background-size: 300% 100%;
 	transition: background-position 1.1s;
 	background-position: ${props => {
-		if (props.turn === playerStatus.P1) return "0% 50%";
-		if (props.turn === playerStatus.P2) return "100% 50%";
-		if (props.turn === playerStatus.NONE) return "50% 50%";
+		if (props.turn === playerKey.P1) return "0% 50%";
+		if (props.turn === playerKey.P2) return "100% 50%";
+		if (props.turn === playerKey.NONE) return "50% 50%";
 	}};
 `;
 
@@ -25,8 +25,8 @@ export const Board = styled("div")`
 	grid-template:
 		repeat(${props => props.size}, ${props => 100 / props.size}%) /
 		repeat(${props => props.size}, ${props => 100 / props.size}%);
-	grid-template-areas: ${props => {
-		return new Array(props.size)
+	grid-template-areas: ${props =>
+		new Array(props.size)
 			.fill(null)
 			.map(
 				(_, i) =>
@@ -37,8 +37,7 @@ export const Board = styled("div")`
 						.join(" ") +
 					"'"
 			)
-			.join(" ");
-	}};
+			.join(" ")};
 `;
 
 export const BoardItem = styled("div")`
@@ -74,34 +73,38 @@ export const Blob = styled("div")`
 	user-select: none;
 	border-radius: 50%;
 	background: linear-gradient(
-		124deg,
-		#ff2400,
-		#e81d1d,
-		#e8b71d,
-		#e3e81d,
-		#1de840,
-		#1ddde8,
-		#2b1de8,
-		#dd00f3,
-		#dd00f3
+		135deg,
+		#ff2400cc,
+		#e81d1dcc,
+		#e8b71dcc,
+		#e3e81dcc,
+		#1de840cc,
+		#1ddde8cc,
+		#2b1de8cc,
+		#dd00f3cc,
+		#dd00f3cc
 	);
 
 	background-size: 400% 400%;
 	transition: background-position 0.7s, transform 0.4s;
 
-	cursor: ${props => (props.cell === boardStatus.EMPTY ? "pointer" : "crosshair")};
+	cursor: ${props => (props.cell === boardKey.EMPTY ? "pointer" : "crosshair")};
 	background-position: ${props => {
-		if (props.cell === boardStatus.MARK) return "50% 50%";
-		if (props.cell === boardStatus.P1) return "90% 90%";
-		if (props.cell === boardStatus.P2) return "0% 0%";
+		if (props.cell === boardKey.MARK) return "50% 50%";
+		if (props.cell === boardKey.P1) return "90% 90%";
+		if (props.cell === boardKey.P2) return "0% 0%";
 		return "25% 25%";
 	}};
 
 	box-shadow: 1px 1px 5px 2px rgba(56, 56, 56, 0.6)
-		${props => (props.cell === boardStatus.EMPTY ? "" : "inset")};
+		${props => (props.cell === boardKey.EMPTY ? "" : "inset")};
 
 	&:hover {
 		transform: ${props =>
-			props.cell === boardStatus.EMPTY ? "scale(1.2) rotateZ(90deg)" : "scale(1.0)"};
+			props.cell === boardKey.EMPTY ? "scale(1.3) rotateZ(90deg)" : "scale(1.0)"};
+	}
+	&:active {
+		box-shadow: 1px 1px 5px 2px rgba(56, 56, 56, 0.6) inset;
+		transform: scale(1.1) rotateZ(180deg);
 	}
 `;
