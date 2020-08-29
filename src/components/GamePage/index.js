@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Link } from "react-router-dom";
 import { Menu, Button, Icon, Modal, Header } from "semantic-ui-react";
+import immer from "immer";
 import { useImmer } from "use-immer";
 import * as queryString from "query-string";
 
@@ -11,7 +12,6 @@ import {
 	nextPlayer,
 	checkGridSize,
 	getWinnerText,
-	computeResults,
 } from "../../services/gameConstants";
 import { createGrid, checkWinConndition } from "../../services/gridValidation";
 import crudCrud from "../../apis/crudCrud";
@@ -66,6 +66,27 @@ const GamePage = ({ match, location }) => {
 		console.groupEnd();
 	}, [gameBoard, currentPlayer, hasWon]);
 
+	const computeResults = async winner => {
+		if (winner === winKey.NONE) return;
+		const p1Change = winner === winKey.P1 ? 2 : winner === winKey.P2 ? -1 : 1;
+		const p2Change = winner === winKey.P2 ? 2 : winner === winKey.P1 ? -1 : 1;
+
+		await crudCrud.put(
+			`/user/${p1Details._id}`,
+			immer(p1Details, draft => {
+				delete draft._id;
+				draft.score += p1Change;
+			})
+		);
+		await crudCrud.put(
+			`/user/${p2Details._id}`,
+			immer(p2Details, draft => {
+				delete draft._id;
+				draft.score += p2Change;
+			})
+		);
+	};
+
 	const onBoardItemClick = (i, j) => () => {
 		if (gameBoard[i][j] !== boardKey.EMPTY || hasWon !== winKey.NONE) return null;
 		setGameBoard(draft => {
@@ -75,7 +96,7 @@ const GamePage = ({ match, location }) => {
 				draft[x][y] = boardKey.MARK;
 			});
 			(async winner => {
-				await computeResults(winner, p1Details, p2Details);
+				await computeResults(winner);
 				setHasWon(winner);
 			})(winner);
 		});
@@ -91,7 +112,7 @@ const GamePage = ({ match, location }) => {
 	};
 
 	const confirmForfeit = async () => {
-		await computeResults(nextPlayer(currentPlayer), p1Details, p2Details);
+		await computeResults(nextPlayer(currentPlayer));
 		setHasForfeited(false);
 		setHasWon(nextPlayer(currentPlayer));
 	};
