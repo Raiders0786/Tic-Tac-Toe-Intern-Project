@@ -29,11 +29,9 @@ const GamePage = ({ match, location }) => {
 	const [p2Details, setP2Details] = useState({});
 
 	useEffect(() => {
-		(async () => {
-			const { player1, player2 } = queryString.parse(location.search);
-			const { data } = await crudCrud.get(`/user`);
-			const gridSize = Number(match.params.size);
-
+		const { player1, player2 } = queryString.parse(location.search);
+		const gridSize = Number(match.params.size);
+		crudCrud.get("/user").then(({ data }) => {
 			if (
 				data.some(({ _id }) => _id === player1) &&
 				data.some(({ _id }) => _id === player2) &&
@@ -45,7 +43,7 @@ const GamePage = ({ match, location }) => {
 				setP2Details(data.find(({ _id }) => _id === player2) ?? {});
 			} else setIsRejected(true);
 			setIsLoading(false);
-		})();
+		});
 	}, [match.params.size, location.search, setGameBoard]);
 
 	useEffect(() => {
