@@ -1,10 +1,10 @@
 import React from "react";
 import { HashRouter, Route, Switch } from "react-router-dom";
 
-import Navbar from "./Navbar";
-import HomePage from "./HomePage";
-import GamePage from "./GamePage";
-import LeaderBoard from "./LeaderBoard";
+import Navbar from "./components/Navbar";
+import HomePage from "./components/HomePage";
+import GamePage from "./components/GamePage";
+import LeaderBoard from "./components/LeaderBoard";
 
 class App extends React.Component {
 	render() {

@@ -4,7 +4,7 @@ import { enableMapSet } from "immer";
 import "semantic-ui-css/semantic.min.css";
 import { createGlobalStyle } from "styled-components";
 
-import App from "./components/App";
+import App from "./App";
 
 const GlobalStyles = createGlobalStyle`
    * {
