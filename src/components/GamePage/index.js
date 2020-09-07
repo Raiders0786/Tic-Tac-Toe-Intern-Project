@@ -1,6 +1,4 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import { Menu, Button, Icon, Modal, Header } from "semantic-ui-react";
+import React, { useState, useEffect, useCallback } from "react";
 import immer from "immer";
 import { useImmer } from "use-immer";
 import * as queryString from "query-string";
@@ -16,7 +14,8 @@ import {
 import { createGrid, checkWinConndition } from "../../services/gridValidation";
 import crudCrud from "../../apis/crudCrud";
 
-import { Container, Board, BoardItem, Blob } from "./styles";
+import GameBoard from "./GameBoard";
+import Modal from "./Modal";
 
 const GamePage = ({ match, location }) => {
 	const [isLoading, setIsLoading] = useState(true);
@@ -27,6 +26,35 @@ const GamePage = ({ match, location }) => {
 	const [gameBoard, setGameBoard] = useImmer(createGrid(1));
 	const [p1Details, setP1Details] = useState({});
 	const [p2Details, setP2Details] = useState({});
+
+	const computeResults = useCallback(
+		async winner => {
+			if (winner === winKey.NONE) return;
+
+			const p1Draft = immer(p1Details, draft => {
+				delete draft._id;
+				draft.score += winner === winKey.P1 ? 2 : winner === winKey.P2 ? -1 : 1;
+			});
+			const p2Draft = immer(p2Details, draft => {
+				delete draft._id;
+				draft.score += winner === winKey.P2 ? 2 : winner === winKey.P1 ? -1 : 1;
+			});
+			await crudCrud.put(`/user/${p1Details._id}`, p1Draft);
+			await crudCrud.put(`/user/${p2Details._id}`, p2Draft);
+		},
+		[p1Details, p2Details]
+	);
+	const openConfirmation = useCallback(() => {
+		setHasForfeited(true);
+	}, []);
+	const cancelForfeit = useCallback(() => {
+		setHasForfeited(false);
+	}, []);
+	const confirmForfeit = useCallback(() => {
+		computeResults(nextPlayer(currentPlayer));
+		setHasForfeited(false);
+		setHasWon(nextPlayer(currentPlayer));
+	}, [computeResults, currentPlayer]);
 
 	useEffect(() => {
 		const { player1, player2 } = queryString.parse(location.search);
@@ -64,27 +92,6 @@ const GamePage = ({ match, location }) => {
 		console.groupEnd();
 	}, [gameBoard, currentPlayer, hasWon]);
 
-	const computeResults = async winner => {
-		if (winner === winKey.NONE) return;
-		const p1Change = winner === winKey.P1 ? 2 : winner === winKey.P2 ? -1 : 1;
-		const p2Change = winner === winKey.P2 ? 2 : winner === winKey.P1 ? -1 : 1;
-
-		await crudCrud.put(
-			`/user/${p1Details._id}`,
-			immer(p1Details, draft => {
-				delete draft._id;
-				draft.score += p1Change;
-			})
-		);
-		await crudCrud.put(
-			`/user/${p2Details._id}`,
-			immer(p2Details, draft => {
-				delete draft._id;
-				draft.score += p2Change;
-			})
-		);
-	};
-
 	const onBoardItemClick = (i, j) => () => {
 		if (gameBoard[i][j] !== boardKey.EMPTY || hasWon !== winKey.NONE) return null;
 		setGameBoard(draft => {
@@ -93,92 +100,56 @@ const GamePage = ({ match, location }) => {
 			positions.forEach(({ x, y }) => {
 				draft[x][y] = boardKey.MARK;
 			});
-			(async winner => {
-				await computeResults(winner);
-				setHasWon(winner);
-			})(winner);
+			computeResults(winner);
+			setHasWon(winner);
 		});
 		setCurrentPlayer(nextPlayer(currentPlayer));
 	};
 
-	const openConfirmation = () => {
-		setHasForfeited(true);
-	};
+	if (isLoading) return <div>Loading</div>;
+	if (isRejected) return <div>Invalid Game</div>;
 
-	const cancelForfeit = () => {
-		setHasForfeited(false);
-	};
-
-	const confirmForfeit = async () => {
-		await computeResults(nextPlayer(currentPlayer));
-		setHasForfeited(false);
-		setHasWon(nextPlayer(currentPlayer));
-	};
-
-	return isLoading ? (
-		<div>Loading</div>
-	) : isRejected ? (
-		<div>Invalid Game</div>
-	) : (
+	return (
 		<React.Fragment>
-			<Container turn={hasWon !== winKey.NONE ? playerKey.NONE : currentPlayer}>
-				<Menu pointing inverted widths={3} size='mini' color='grey'>
-					<Menu.Item fitted active={currentPlayer === 1}>
-						<Icon name={p1Details.icon} color='teal' />
-						{p1Details.name}
-					</Menu.Item>
-					<Menu.Item fitted active={currentPlayer === 2}>
-						<Icon name={p2Details.icon} color='orange' />
-						{p2Details.name}
-					</Menu.Item>
-					<Menu.Item fitted>
-						<Button
-							fluid
-							negative
-							icon='eject'
-							content='Forfeit'
-							onClick={openConfirmation}
-						/>
-					</Menu.Item>
-				</Menu>
-				<Board size={gameBoard.length}>
-					{gameBoard.map((row, i) => (
-						<React.Fragment key={i}>
-							{row.map((el, j) => (
-								<BoardItem key={`p${i}${j}`} area={`p${i}${j}`}>
-									<Blob cell={el} onClick={onBoardItemClick(i, j)} />
-								</BoardItem>
-							))}
-						</React.Fragment>
-					))}
-				</Board>
-			</Container>
-			<Modal centered open={hasWon !== winKey.NONE}>
-				<Modal.Header>{getWinnerText(hasWon, p1Details, p2Details)}</Modal.Header>
-				<Modal.Content>
-					<Modal.Description>
-						<Header>Do you want to</Header>
-						<p>Go back to the Home Page or the Leaderboard</p>
-					</Modal.Description>
-				</Modal.Content>
-				<Modal.Actions>
-					<Button as={Link} to='/' icon='home' color='black' />
-					<Button as={Link} to='/leaderboard' icon='pie chart' color='black' />
-				</Modal.Actions>
-			</Modal>
-			<Modal open={hasForfeited}>
-				<Modal.Header>Confirmation Page</Modal.Header>
-				<Modal.Content>
-					<Modal.Description>
-						<Header>Are you sure you want to Forfeit the Game</Header>
-						<p>You will lose points if you Forfeit the Match</p>
-					</Modal.Description>
-				</Modal.Content>
-				<Modal.Actions>
-					<Button negative icon='close' onClick={cancelForfeit} />
-					<Button positive icon='check' onClick={confirmForfeit} />
-				</Modal.Actions>
-			</Modal>
+			<GameBoard
+				hasWon={hasWon}
+				currentPlayer={currentPlayer}
+				gameBoard={gameBoard}
+				handleBoardItemClick={onBoardItemClick}
+				openConfirmation={openConfirmation}
+				p1Details={p1Details}
+				p2Details={p2Details}
+			/>
+			<Modal
+				isOpen={hasWon !== winKey.NONE}
+				header={getWinnerText(hasWon, p1Details, p2Details)}
+				description={"Do you want to"}
+				content={"Go back to the Home Page or the Leaderboard"}
+				buttons={[
+					{ isLink: true, icon: "home", color: "black", handleEvent: "/" },
+					{
+						isLink: true,
+						icon: "pie chart",
+						color: "black",
+						handleEvent: "/leaderboard",
+					},
+				]}
+			/>
+			<Modal
+				isOpen={hasForfeited}
+				header={"Confirmation Page"}
+				description={"Are you sure you want to Forfeit the Game"}
+				content={"You will lose points if you Forfeit the Match"}
+				buttons={[
+					{ isLink: false, icon: "close", color: "red", handleEvent: cancelForfeit },
+					{
+						isLink: false,
+						icon: "check",
+						color: "green",
+						handleEvent: confirmForfeit,
+					},
+				]}
+			/>
 		</React.Fragment>
 	);
 };

@@ -1,68 +1,54 @@
-import React, { useState, useEffect } from "react";
-import { Link } from "react-router-dom";
-import {
-	Segment,
-	Icon,
-	Header,
-	Button,
-	Input,
-	Modal,
-	Divider,
-} from "semantic-ui-react";
+import React, { useState, useEffect, useCallback } from "react";
 
 import {
+	playerKey,
 	minBoardSize,
 	maxBoardSize,
 	startBoardSize,
+	dropdownMap,
 } from "../../services/gameConstants";
 import crudCrud from "../../apis/crudCrud";
 
-import DropdownMenu from "./Dropdown";
-import { StyledGrid, GridItem } from "./style";
+import HomeOptions from "./HomeOptions";
+import GameModal from "./GameModal";
+import { StyledGrid } from "./style";
 
 const HomePage = ({ history }) => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isModalOpen, setIsModelOpen] = useState(false);
 	const [players, setPlayers] = useState([]);
-	const [player1, setPlayer1] = useState(null);
-	const [player2, setPlayer2] = useState(null);
+	const [player1, setPlayer1] = useState(playerKey.NONE);
+	const [player2, setPlayer2] = useState(playerKey.NONE);
 	const [boardSize, setBoardSize] = useState(startBoardSize);
+
+	const onModalToggle = useCallback(() => {
+		setIsModelOpen(prev => !prev);
+	}, []);
+	const onPlayerChange = useCallback(
+		player => (_, { value }) => {
+			if (player === playerKey.P1) setPlayer1(value);
+			else if (player === playerKey.P2) setPlayer2(value);
+		},
+		[]
+	);
+	const onSizeChange = useCallback((_, { value }) => {
+		value = Math.round(Number(value));
+		if (value < minBoardSize) value = minBoardSize;
+		if (value > maxBoardSize) value = maxBoardSize;
+		setBoardSize(value);
+	}, []);
 
 	useEffect(() => {
 		(async () => {
 			const { data } = await crudCrud.get("/user");
-			setPlayers(
-				data.map(el => ({
-					key: el._id,
-					value: el._id,
-					text: el.name,
-					icon: el.icon,
-				}))
-			);
+			setPlayers(dropdownMap(data));
 			setPlayer1(data[0]._id);
 			setPlayer2(data[1]._id);
 			setIsLoading(false);
 		})();
 	}, []);
 
-	const handleModalToggle = () => {
-		setIsModelOpen(prev => !prev);
-	};
-
-	const handlePlayerChange = player => (_, { value }) => {
-		if (player === 1) setPlayer1(value);
-		else if (player === 2) setPlayer2(value);
-	};
-
-	const handleSizeChange = (_, { value }) => {
-		value = Number(value);
-		if (value < minBoardSize) value = minBoardSize;
-		if (value > maxBoardSize) value = maxBoardSize;
-		if (Math.round(value) !== value) value = Math.round(value);
-		setBoardSize(value);
-	};
-
-	const handleSubmit = () => {
+	const onSubmit = () => {
 		history.push(`/game/${boardSize}?player1=${player1}&player2=${player2}`);
 	};
 
@@ -71,87 +57,53 @@ const HomePage = ({ history }) => {
 	return (
 		<React.Fragment>
 			<StyledGrid>
-				<GridItem area='a' as={Segment} color='purple' raised>
-					<Header as='h2'>
-						<Icon name='setting' loading />
-						<Header.Content>
-							Tic Tac Toe
-							<Header.Subheader>Choose an Option</Header.Subheader>
-						</Header.Content>
-					</Header>
-					<Divider section horizontal>
-						<Icon name='tag' />
-						Options
-					</Divider>
-					<Button
-						primary
-						icon
-						fluid
-						labelPosition='left'
-						onClick={handleModalToggle}
-					>
-						<Icon name='settings' />
-						New Game
-					</Button>
-					<br />
-					<Button
-						as={Link}
-						to='/register'
-						icon
-						fluid
-						color='orange'
-						labelPosition='left'
-					>
-						<Icon name='plus' />
-						New User
-					</Button>
-				</GridItem>
+				<HomeOptions
+					area='a'
+					header='Tic Tac Toe'
+					subheader='Choose an Option'
+					divider='Options'
+					buttons={[
+						{
+							isLink: false,
+							color: "blue",
+							icon: "settings",
+							content: "New Game",
+							handleEvent: onModalToggle,
+						},
+						{
+							isLink: true,
+							color: "orange",
+							icon: "plus",
+							content: "New User",
+							handleEvent: "/register",
+						},
+					]}
+				/>
 			</StyledGrid>
-			<Modal open={isModalOpen} centered={false}>
-				<Modal.Header>Choose Players</Modal.Header>
-				<Modal.Content scrolling>
-					<DropdownMenu
-						placeholder='Select Player 1'
-						options={players.map(el => ({
-							...el,
-							disabled: el.value === player2 ? true : false,
-						}))}
-						value={player1}
-						handleChange={handlePlayerChange(1)}
-					/>
-					<br />
-					<DropdownMenu
-						placeholder='Select Player 2'
-						options={players.map(el => ({
-							...el,
-							disabled: el.value === player1 ? true : false,
-						}))}
-						value={player2}
-						handleChange={handlePlayerChange(2)}
-					/>
-					<br />
-					<Input
-						fluid
-						step={1}
-						type='number'
-						min={minBoardSize}
-						max={maxBoardSize}
-						value={boardSize}
-						onChange={handleSizeChange}
-					/>
-					<br />
-				</Modal.Content>
-				<Modal.Actions>
-					<Button primary icon labelPosition='right' onClick={handleSubmit}>
-						<Icon name='subway' />
-						Start
-					</Button>
-					<Button negative icon labelPosition='right' onClick={handleModalToggle}>
-						<Icon name='close' />
-						Close
-					</Button>
-				</Modal.Actions>
-			</Modal>
+			<GameModal
+				isModalOpen={isModalOpen}
+				header='Choose Players'
+				players={players}
+				player1={player1}
+				player2={player2}
+				boardSize={boardSize}
+				handlePlayerChange={onPlayerChange}
+				handleSizeChange={onSizeChange}
+				buttons={[
+					{
+						color: "green",
+						icon: "subway",
+						content: "Start",
+						handleEvent: onSubmit,
+					},
+					{
+						color: "red",
+						icon: "close",
+						content: "Close",
+						handleEvent: onModalToggle,
+					},
+				]}
+			/>
 		</React.Fragment>
 	);
 };

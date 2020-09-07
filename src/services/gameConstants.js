@@ -20,6 +20,14 @@ export const boardKey = Object.freeze({
 	EMPTY: null,
 });
 
+export const dropdownMap = arr =>
+	arr.map(el => ({
+		key: el._id,
+		value: el._id,
+		text: el.name,
+		icon: el.icon,
+	}));
+
 export const checkBoardCell = cell => {
 	if (cell === playerKey.P1 || cell === playerKey.P2) return true;
 	return false;
