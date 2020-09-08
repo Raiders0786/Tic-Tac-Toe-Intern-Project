@@ -1,14 +1,14 @@
 import React from "react";
 import { Dropdown } from "semantic-ui-react";
 
-const DropdownMenu = ({ handleChange, options, placeholder, value }) => (
+const DropdownMenu = props => (
 	<Dropdown
 		fluid
 		selection
-		value={value}
-		options={options}
-		placeholder={placeholder}
-		onChange={handleChange}
+		value={props.value}
+		options={props.options}
+		placeholder={props.placeholder}
+		onChange={props.handleChange}
 	/>
 );
 

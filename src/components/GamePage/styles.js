@@ -2,7 +2,7 @@ import styled from "styled-components";
 
 import { boardKey, playerKey } from "../../services/gameConstants";
 
-export const Container = styled("div")`
+export const BoardContainer = styled("div")`
 	width: 100%;
 	height: 100%;
 	overflow-y: auto;

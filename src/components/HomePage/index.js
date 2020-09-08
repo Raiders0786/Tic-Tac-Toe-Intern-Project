@@ -13,7 +13,7 @@ import HomeOptions from "./HomeOptions";
 import GameModal from "./GameModal";
 import { StyledGrid } from "./style";
 
-const HomePage = ({ history }) => {
+const HomePage = props => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isModalOpen, setIsModelOpen] = useState(false);
 	const [players, setPlayers] = useState([]);
@@ -49,7 +49,7 @@ const HomePage = ({ history }) => {
 	}, []);
 
 	const onSubmit = () => {
-		history.push(`/game/${boardSize}?player1=${player1}&player2=${player2}`);
+		props.history.push(`/game/${boardSize}?player1=${player1}&player2=${player2}`);
 	};
 
 	if (isLoading) return <div>Loading ...</div>;

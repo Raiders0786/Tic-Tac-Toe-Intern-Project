@@ -17,7 +17,7 @@ import crudCrud from "../../apis/crudCrud";
 import GameBoard from "./GameBoard";
 import Modal from "./Modal";
 
-const GamePage = ({ match, location }) => {
+const GamePage = props => {
 	const [isLoading, setIsLoading] = useState(true);
 	const [isRejected, setIsRejected] = useState(false);
 	const [currentPlayer, setCurrentPlayer] = useState(playerKey.P1);
@@ -57,8 +57,8 @@ const GamePage = ({ match, location }) => {
 	}, [computeResults, currentPlayer]);
 
 	useEffect(() => {
-		const { player1, player2 } = queryString.parse(location.search);
-		const gridSize = Number(match.params.size);
+		const { player1, player2 } = queryString.parse(props.location.search);
+		const gridSize = Number(props.match.params.size);
 		crudCrud.get("/user").then(({ data }) => {
 			if (
 				data.some(({ _id }) => _id === player1) &&
@@ -72,7 +72,7 @@ const GamePage = ({ match, location }) => {
 			} else setIsRejected(true);
 			setIsLoading(false);
 		});
-	}, [match.params.size, location.search, setGameBoard]);
+	}, [props.match.params.size, props.location.search, setGameBoard]);
 
 	useEffect(() => {
 		console.groupCollapsed("Player Details ...");
